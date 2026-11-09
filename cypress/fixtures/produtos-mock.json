@@ -1,0 +1,19 @@
+{
+  "quantidade": 2,
+  "produtos": [
+    {
+      "nome": "Teclado Mecânico MOCK",
+      "preco": 350,
+      "descricao": "Produto simulado pelo cy.intercept",
+      "quantidade": 10,
+      "_id": "mock0000000000001"
+    },
+    {
+      "nome": "Mouse Gamer MOCK",
+      "preco": 180,
+      "descricao": "Produto simulado pelo cy.intercept",
+      "quantidade": 0,
+      "_id": "mock0000000000002"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+name: Testes automatizados
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # dias úteis às 09:00 (BRT): detecta mudanças na aplicação mesmo sem commits
+    - cron: '0 12 * * 1-5'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualidade:
+    name: Lint e tipos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0 # o binário não é necessário só para o lint
+      - run: npm run lint
+      - run: npm run format:check
+
+  cypress:
+    name: Cypress (${{ matrix.suite }})
+    needs: qualidade
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, ui]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Executar testes
+        uses: cypress-io/github-action@v7
+        with:
+          spec: cypress/e2e/${{ matrix.suite }}/**
+          browser: chrome
+      - name: Relatório HTML
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: relatorio-${{ matrix.suite }}
+          path: cypress/reports
+          if-no-files-found: ignore
+      - name: Screenshots das falhas
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-${{ matrix.suite }}
+          path: cypress/screenshots
+          if-no-files-found: ignore
+
+  relatorio:
+    name: Publicar relatório no GitHub Pages
+    needs: cypress
+    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: relatorio-*
+          path: site
+      - name: Página inicial
+        run: |
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="pt-BR">
+            <head><meta charset="utf-8"><title>Relatórios - cypress-serverest</title></head>
+            <body style="font-family: system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 16px">
+              <h1>Relatórios de testes</h1>
+              <ul>
+                <li><a href="relatorio-api/index.html">Testes de API</a></li>
+                <li><a href="relatorio-ui/index.html">Testes de interface (E2E)</a></li>
+              </ul>
+            </body>
+          </html>
+          HTML
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v5

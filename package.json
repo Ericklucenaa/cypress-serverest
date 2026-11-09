@@ -1,0 +1,41 @@
+{
+  "name": "cypress-serverest",
+  "version": "1.0.0",
+  "description": "Testes automatizados E2E e de API com Cypress + TypeScript para a aplicação ServeRest",
+  "scripts": {
+    "cy:open": "cypress open",
+    "test": "cypress run",
+    "test:api": "cypress run --spec \"cypress/e2e/api/**\"",
+    "test:ui": "cypress run --spec \"cypress/e2e/ui/**\"",
+    "lint": "eslint . && tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "cypress",
+    "e2e",
+    "api-testing",
+    "typescript",
+    "qa",
+    "serverest"
+  ],
+  "author": "Erick Henrique",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@faker-js/faker": "^10.6.0",
+    "@types/node": "^26.6.6",
+    "ajv": "^8.20.0",
+    "cypress": "^16.2.1",
+    "cypress-mochawesome-reporter": "^5.0.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-cypress": "^7.0.4",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2"
+  },
+  "allowScripts": {
+    "cypress@16.2.1": true
+  },
+  "private": true
+}
